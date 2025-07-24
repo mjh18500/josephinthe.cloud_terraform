@@ -1,0 +1,70 @@
+name: Terraform CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  TF_VERSION: 1.7.0
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+jobs:
+  # -------------------------------
+  # 🧪 Deploy PR-specific test env
+  # -------------------------------
+  deploy-test-env:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    name: Deploy Test Infrastructure
+    env:
+      RESOURCE_GROUP_NAME: "test-${{ github.event.pull_request.number }}"
+      LOCATION: "eastus"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Init and Apply Test Backend
+        working-directory: terraform/environments/test
+        run: |
+          terraform init
+          terraform apply -auto-approve \
+            -var="resource_group_name=${RESOURCE_GROUP_NAME}" \
+            -var="location=${LOCATION}" \
+            -var="env_name=test-${{ github.event.pull_request.number }}"
+
+  # -------------------------------------
+  # ✅ Run Cypress and Linting in parallel
+  # -------------------------------------
+  test:
+    needs: deploy-test-env
+    runs-on: ubuntu-latest
+    name: Run Cypress & Lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Run Cypress E2E tests
+        run: |
+          CYPRESS_BASE_URL="https://test-${{ github.event.pull_request.number }}.azurefd.net"
+          npx cypress run
+
+  
