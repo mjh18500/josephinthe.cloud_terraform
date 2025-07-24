@@ -1,0 +1,62 @@
+{
+	"/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1": {
+		"resource_id": "/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1",
+		"resource_type": "azurerm_resource_group",
+		"resource_name": "res-0"
+	},
+	"/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00CDNProfile/endpoints/dev00CDNendpoint/customdomains/www-josephinthe-cloud": {
+		"resource_id": "/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00CDNProfile/endpoints/dev00CDNendpoint/customDomains/www-josephinthe-cloud",
+		"resource_type": "azurerm_cdn_endpoint_custom_domain",
+		"resource_name": "res-1"
+	},
+	"/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00fdProfile": {
+		"resource_id": "/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00fdProfile",
+		"resource_type": "azurerm_cdn_frontdoor_profile",
+		"resource_name": "res-3"
+	},
+	"/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00fdProfile/afdendpoints/dev00fdEndpoint/routes/default-route": {
+		"resource_id": "/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00fdProfile/afdEndpoints/dev00fdEndpoint/routes/default-route",
+		"resource_type": "azurerm_cdn_frontdoor_route",
+		"resource_name": "res-5"
+	},
+	"/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00fdProfile/customdomains/josephinthe-cloud-4945": {
+		"resource_id": "/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00fdProfile/customDomains/josephinthe-cloud-4945",
+		"resource_type": "azurerm_cdn_frontdoor_custom_domain",
+		"resource_name": "res-6"
+	},
+	"/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00fdProfile/origingroups/default-origin-group-723f3aac": {
+		"resource_id": "/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00fdProfile/originGroups/default-origin-group-723f3aac",
+		"resource_type": "azurerm_cdn_frontdoor_origin_group",
+		"resource_name": "res-7"
+	},
+	"/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00fdProfile/origingroups/default-origin-group-723f3aac/origins/default-origin": {
+		"resource_id": "/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00fdProfile/originGroups/default-origin-group-723f3aac/origins/default-origin",
+		"resource_type": "azurerm_cdn_frontdoor_origin",
+		"resource_name": "res-8"
+	},
+	"/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Storage/storageAccounts/dev00storageaccount": {
+		"resource_id": "/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Storage/storageAccounts/dev00storageaccount",
+		"resource_type": "azurerm_storage_account",
+		"resource_name": "res-10"
+	},
+	"/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Storage/storageAccounts/dev00storageaccount/blobServices/default/containers/$web": {
+		"resource_id": "/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Storage/storageAccounts/dev00storageaccount/blobServices/default/containers/$web",
+		"resource_type": "azurerm_storage_container",
+		"resource_name": "res-12"
+	},
+	"/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Storage/storageAccounts/dev00storageaccount/queueServices/default": {
+		"resource_id": "/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Storage/storageAccounts/dev00storageaccount",
+		"resource_type": "azurerm_storage_account_queue_properties",
+		"resource_name": "res-14"
+	},
+	"/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/microsoft.cdn/profiles/dev00CDNProfile": {
+		"resource_id": "/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00CDNProfile",
+		"resource_type": "azurerm_cdn_profile",
+		"resource_name": "res-16"
+	},
+	"/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/microsoft.cdn/profiles/dev00CDNProfile/endpoints/dev00CDNendpoint": {
+		"resource_id": "/subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00CDNProfile/endpoints/dev00CDNendpoint",
+		"resource_type": "azurerm_cdn_endpoint",
+		"resource_name": "res-17"
+	}
+}

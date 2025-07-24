@@ -1,0 +1,8 @@
+Following resources are marked to be skipped:
+
+- /subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00CDNProfile/endpoints/dev00CDNendpoint/origins/default-origin-6c1b74aa
+- /subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00fdProfile/afdendpoints/dev00fdEndpoint
+- /subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Cdn/profiles/dev00fdProfile/secrets/0--3058190a-9073-4925-a90b-1ad9d79320a8-josephinthe-cloud
+- /subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Storage/storageAccounts/dev00storageaccount/blobServices/default
+- /subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Storage/storageAccounts/dev00storageaccount/fileServices/default
+- /subscriptions/ebeec867-0bac-448a-b3ba-197e572e0b4c/resourceGroups/Dev_ResourceGroup1/providers/Microsoft.Storage/storageAccounts/dev00storageaccount/tableServices/default
