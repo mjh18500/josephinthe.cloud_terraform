@@ -33,7 +33,7 @@ module "backend" {
 module "frontend" {
   source               = "../../modules/frontend"
   location             = var.location
-  storage_account_name = "front${var.env_name}storacc02"
+  storage_account_name = "front${var.env_name}storacc01"
   resource_group_name  = "Frontend_${var.resource_group_name}"
   fd_profile_name      = "Frontend_fdprofile"
   subscription_id      = "ebeec867-0bac-448a-b3ba-197e572e0b4c"
