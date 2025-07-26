@@ -1,6 +1,6 @@
 variable "env_name" {
   type        = string
-  description = "testenv
+  description = "testenv"
 }
 
 variable "resource_group_name" {
