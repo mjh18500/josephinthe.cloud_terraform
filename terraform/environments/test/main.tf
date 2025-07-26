@@ -25,7 +25,7 @@ module "backend" {
   function_app_name    = "Backendjosephinthecloud-${var.env_name}"
   cosmosdb_name        = "backendcosmosdb001"
   user_object_id       = "e9bcdf18-cd9d-4805-ad21-594dad348e61"  
-  storage_account_name = "back${var.env_name}storacc02" 
+  storage_account_name = "back${var.env_name}storacc03" 
 }
 
 //storage_account_name must be unique
