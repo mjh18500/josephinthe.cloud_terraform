@@ -1,18 +1,10 @@
-terraform {
-  backend "azurerm" {
     resource_group_name  = "rg-terraformstate"
     storage_account_name = "josephcloudtfstateacc001"
     container_name       = "statecontainer"
     key                  = "test.terraform.tfstate"
-  }
-  required_providers {
-    azurerm = {
-      source = "hashicorp/azurerm"
-      version = "4.33.0"
+    use_oidc                        = true
+    use_azuread_auth         = true
 
-    }
-  }
-}
 
 
 
