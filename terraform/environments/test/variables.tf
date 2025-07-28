@@ -1,3 +1,8 @@
+variable "subscription_id" {
+  type        = string
+  description = "ebeec867-0bac-448a-b3ba-197e572e0b4c"
+}
+
 variable "env_name" {
   type        = string
   description = "testenv"

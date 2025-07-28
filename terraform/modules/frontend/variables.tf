@@ -24,7 +24,3 @@ variable "cdn_profile_name" {
 variable "cdn_endpoint_name" {
   type        = string
 }
-
-variable "env_name" {
-  type        = string
-}
