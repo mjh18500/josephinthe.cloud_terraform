@@ -23,7 +23,7 @@ module "backend" {
   api_publisher_name   = "Joseph Hernandez"
   api_publisher_email  = "joseph@josephinthe.cloud"
   function_app_name    = "Backendjosephinthecloud-${var.env_name}"
-  cosmosdb_name        = "backendcosmosdb001"
+  cosmosdb_name        = "backendcosmosdb002"
   user_object_id       = "e9bcdf18-cd9d-4805-ad21-594dad348e61"  
   storage_account_name = "back${var.env_name}storacc03" 
 }
