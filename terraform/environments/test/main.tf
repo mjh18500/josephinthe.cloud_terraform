@@ -31,7 +31,7 @@ module "frontend" {
   storage_account_name = "front${var.env_name}storacc02"
   resource_group_name  = "Frontend_${var.resource_group_name}"
   fd_profile_name      = "Frontend_fdprofile"
-  subscription_id      = "ebeec867-0bac-448a-b3ba-197e572e0b4c"
+  subscription_id      = var.subscription_id
   cdn_profile_name     = "Frontend_cdnProfile"
   cdn_endpoint_name    = "Frontend_cdnendpoint"    
 }
