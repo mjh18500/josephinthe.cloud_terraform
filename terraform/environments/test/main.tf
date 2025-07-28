@@ -1,6 +1,6 @@
 provider "azurerm" {
   features {}
-  subscription_id                 = "ebeec867-0bac-448a-b3ba-197e572e0b4c"
+  subscription_id                 = var.subscription_id
   environment                     = "public"
   use_msi                         = false
   use_cli                         = true
@@ -26,6 +26,7 @@ module "backend" {
   cosmosdb_name        = "backendcosmosdb002"
   user_object_id       = "e9bcdf18-cd9d-4805-ad21-594dad348e61"  
   storage_account_name = "back${var.env_name}storacc03" 
+  subscription_id      = var.subscription_id
 }
 
 //storage_account_name must be unique
