@@ -5,6 +5,13 @@ terraform {
     container_name       = "statecontainer"
     key                  = "test.terraform.tfstate"
   }
+  required_providers {
+    azurerm = {
+      source = "hashicorp/azurerm"
+      version = "4.33.0"
+
+    }
+  }
 }
 
 
