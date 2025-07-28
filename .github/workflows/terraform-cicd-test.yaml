@@ -35,7 +35,7 @@ jobs:
       - name: Init and Apply Test Backend
         working-directory: terraform/environments/test
         run: |
-          terraform init -backend-config=backend.tf
+          terraform init 
           terraform apply -auto-approve \
             -var="resource_group_name=${RESOURCE_GROUP_NAME}" \
             -var="location=${LOCATION}" \
