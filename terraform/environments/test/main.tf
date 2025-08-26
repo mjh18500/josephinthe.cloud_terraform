@@ -2,6 +2,7 @@ provider "azurerm" {
   features {}
 }
 
+
 //function_app_name must be unique
 //function app name. Valid characters are a-z (case insensitive), 0-9, and -.
 //user_object_id for role assigments
@@ -9,17 +10,20 @@ provider "azurerm" {
 //storage_account_name must be unique. 
 //Storage account name must be between 3 and 24 characters in length and use numbers and lower-case letters only.
 
+
 module "backend" {
   source               = "../../modules/backend"
-  resource_group_name  = "Backend_API_${var.resource_group_name}"
+  resource_group_name  = "Backend_${var.resource_group_name}_${var.env_name}"
   location             = var.location
   location_short       = "EUS2" 
   api_publisher_name   = "Joseph Hernandez"
+  api_first_name       = "Joseph"
+  api_last_name        = "Hernandez" 
   api_publisher_email  = "joseph@josephinthe.cloud"
-  function_app_name    = "Backendjosephinthecloud-${var.env_name}"
-  cosmosdb_name        = "backendcosmosdb002"
-  user_object_id       = "e9bcdf18-cd9d-4805-ad21-594dad348e61"  
-  storage_account_name = "back${var.env_name}storacc02" 
+  api_title            = "functionAPI"
+  cosmosdb_name        = "backendcosmosdb007"
+  user_object_id       = "e9bcdf18-cd9d-4805-ad21-594dad348e61" 
+  service_principal_id = "f318ff35-9355-46b0-9eab-28dcc9a5c7cd" 
   subscription_id      = var.subscription_id
 }
 
@@ -28,10 +32,8 @@ module "backend" {
 module "frontend" {
   source               = "../../modules/frontend"
   location             = var.location
-  storage_account_name = "front${var.env_name}storacc02"
-  resource_group_name  = "Frontend_${var.resource_group_name}"
-  fd_profile_name      = "Frontend_fdprofile"
+  resource_group_name  = "Frontend_${var.resource_group_name}_${var.env_name}"
+  fd_profile_name      = "Frontendfdprofile"
   subscription_id      = var.subscription_id
-  cdn_profile_name     = "Frontend_cdnProfile"
-  cdn_endpoint_name    = "Frontend_cdnendpoint"    
+  cdn_profile_name     = "josephcloudcdnProfile"  
 }
