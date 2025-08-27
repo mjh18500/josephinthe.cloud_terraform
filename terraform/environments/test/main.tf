@@ -15,28 +15,28 @@ module "backend" {
   source               = "../../modules/backend"
   resource_group_name  = "Backend_${var.resource_group_name}_${var.env_name}"
   location             = var.location
-  location_short       = "EUS2" 
+  location_short       = "EUS2"
   api_publisher_name   = "Joseph Hernandez"
   api_first_name       = "Joseph"
-  api_last_name        = "Hernandez" 
+  api_last_name        = "Hernandez"
   api_publisher_email  = "joseph@josephinthe.cloud"
   api_title            = "functionAPI"
   cosmosdb_name        = "backendcosmosdb007"
-  user_object_id       = "e9bcdf18-cd9d-4805-ad21-594dad348e61" 
-  service_principal_id = "f318ff35-9355-46b0-9eab-28dcc9a5c7cd" 
+  user_object_id       = "e9bcdf18-cd9d-4805-ad21-594dad348e61"
+  service_principal_id = "f318ff35-9355-46b0-9eab-28dcc9a5c7cd"
   subscription_id      = var.subscription_id
 }
 
 //storage_account_name must be unique
 
 module "frontend" {
-  source               = "../../modules/frontend"
-  location             = var.location
-  resource_group_name  = "Frontend_${var.resource_group_name}_${var.env_name}"
-  fd_profile_name      = "Frontendfdprofile"
-  subscription_id      = var.subscription_id
+  source              = "../../modules/frontend"
+  location            = var.location
+  resource_group_name = "Frontend_${var.resource_group_name}_${var.env_name}"
+  fd_profile_name     = "Frontendfdprofile"
+  subscription_id     = var.subscription_id
   //cdn_profile_name     = "josephcloudcdnProfile"  
-  fd_endpoint_name     = "test-${var.pr_number}"
+  fd_endpoint_name = "test-${var.pr_number}"
 }
 
 output "frontdoor_endpoint_url" {

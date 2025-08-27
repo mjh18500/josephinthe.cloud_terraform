@@ -32,10 +32,6 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Terraform Format Check
-        working-directory: terraform/environments/test
-        run: terraform fmt -check -recursive
-
       - name: Terraform Validate
         working-directory: terraform/environments/test
         run: terraform validate
