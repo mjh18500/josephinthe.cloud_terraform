@@ -46,3 +46,7 @@ variable "api_title" {
   type        = string
   description = "Display title for the API"
 }
+
+variable "env_name" {
+  type       = string
+}

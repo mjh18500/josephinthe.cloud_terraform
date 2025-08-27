@@ -11,7 +11,7 @@ resource "azurerm_api_management" "res-api-management" {
   public_network_access_enabled = true
   virtual_network_type          = "None"
   location            = var.location
-  name                = "jcloudtest-apim-${random_id.res-ran-id.hex}"
+  name                = "jcloud${var.env_name}-apim-${random_id.res-ran-id.hex}"
   publisher_email     = var.api_publisher_email
   publisher_name      = var.api_publisher_name
   resource_group_name = azurerm_resource_group.res-backend-rg.name
@@ -27,7 +27,7 @@ resource "azurerm_api_management" "res-api-management" {
 }
 
 locals {
-  clean_function_app_name = lower("jcloud-testfuncapp-${random_id.res-ran-id.hex}")
+  clean_function_app_name = lower("jcloud-${var.env_name}funcapp-${random_id.res-ran-id.hex}")
   api_base_path           = local.clean_function_app_name
   revision                = 1  
   revision_suffix         = format(";rev=%s", local.revision)
@@ -45,7 +45,7 @@ data "template_file" "api_spec" {
 }
 
 resource "azurerm_api_management_api" "res-api-man-api" {
-  name                = "test_API"
+  name                = "${var.env_name}_API"
   resource_group_name = azurerm_api_management.res-api-management.resource_group_name
   api_management_name = azurerm_api_management.res-api-management.name
   revision            = local.revision
@@ -269,7 +269,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "res-cosmosdb-sql-role-assignmen
 
 resource "azurerm_log_analytics_workspace" "res-log-analytics-workspace" {
   location            = var.location
-  name                = "DefaultWorkspace-test"
+  name                = "DefaultWorkspace-${var.env_name}"
   resource_group_name = azurerm_resource_group.res-backend-rg.name
   depends_on = [
     azurerm_resource_group.res-backend-rg
@@ -298,7 +298,7 @@ resource "azurerm_storage_account" "res-storage-account" {
   shared_access_key_enabled         = true
   table_encryption_key_type         = "Service"
   location                          = var.location
-  name                              = "backteststor${random_id.res-ran-id.hex}"
+  name                              = "backendstor${random_id.res-ran-id.hex}"
   resource_group_name               = azurerm_resource_group.res-backend-rg.name
   share_properties {
     retention_policy {
@@ -403,7 +403,7 @@ resource "time_sleep" "res-app-service-sleep" {
 
 
 resource "azurerm_linux_function_app" "res-lin-func-app" {
-  name                = "jcloud-testfuncapp-${random_id.res-ran-id.hex}"
+  name                = "jcloud-${var.env_name}funcapp-${random_id.res-ran-id.hex}"
   resource_group_name = azurerm_resource_group.res-backend-rg.name
   location            = var.location
   public_network_access_enabled = true
@@ -507,7 +507,7 @@ resource "azurerm_monitor_smart_detector_alert_rule" "res-mon-alert-rule" {
 resource "azurerm_application_insights" "res-app-insights" {
   application_type    = "web"
   location            = var.location
-  name                = "test-appinsights"
+  name                = "${var.env_name}-appinsights"
   workspace_id        = azurerm_log_analytics_workspace.res-log-analytics-workspace.id
   resource_group_name = azurerm_resource_group.res-backend-rg.name
   sampling_percentage = 0

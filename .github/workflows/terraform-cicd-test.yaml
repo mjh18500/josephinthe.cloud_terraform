@@ -38,6 +38,7 @@ jobs:
           terraform init
           terraform validate
           terraform apply -auto-approve \
+            -var="subscription_id=${{ secrets.ARM_SUBSCRIPTION_ID }}" \
             -var="pr_number=${{ github.event.pull_request.number }}" \
             -var="resource_group_name=${RESOURCE_GROUP_NAME}" \
             -var="location=${LOCATION}" \

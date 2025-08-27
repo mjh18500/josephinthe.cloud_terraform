@@ -1,7 +1,6 @@
 variable "env_name" {
   description = "Prod or Test"
   type        = string
-  default     = "testenv"
 }
 
 variable "location" {
