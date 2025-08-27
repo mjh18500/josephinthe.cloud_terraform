@@ -32,11 +32,13 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Terraform Format Check
+       - name: Terraform Format Check
+        working-directory: terraform/environments/test
         run: terraform fmt -check -recursive
 
       - name: Terraform Validate
-        run: terraform validate    
+        working-directory: terraform/environments/test
+        run: terraform validate
 
       - name: Init and Apply Test Backend
         working-directory: terraform/environments/test
@@ -65,13 +67,20 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Get Frontdoor endpoint
+      - name: Get Terraform Outputs
+        working-directory: terraform/environments/test
         id: tf-output
         run: |
           echo "FRONTDOOR_URL=$(terraform output -raw frontdoor_endpoint_url)" >> $GITHUB_ENV
           echo "APIM_URL=$(terraform output -raw apim_api_url)" >> $GITHUB_ENV
-          echo "FUNCAPP_URL=$(terraform output -raw function_app_url)" >> $GITHUB_ENV
+          echo "FUNCAPP_URL=$(terraform output -raw function_app_url)" >> $GITHUB_ENV    
+
       - name: Run Cypress E2E tests
         run:  npx cypress run
         env:
