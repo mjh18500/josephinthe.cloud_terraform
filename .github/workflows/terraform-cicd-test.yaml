@@ -66,6 +66,11 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
+      - name: Init Backend
+        working-directory: terraform/environments/test
+        run: |
+          terraform init
+
       - name: Get Terraform Outputs
         working-directory: terraform/environments/test
         id: tf-output
