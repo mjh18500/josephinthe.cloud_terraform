@@ -1,7 +1,7 @@
 # APIM Gateway URL (with base API path)
 output "apim_api_url" {
   description = "The APIM endpoint for the http_trigger API"
-  value       = "https://${azurerm_api_management.res-api-management.gateway_url}"
+  value       = azurerm_api_management.res-api-management.gateway_url
 }
 
 # Function App default URL
