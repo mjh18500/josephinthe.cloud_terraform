@@ -32,12 +32,16 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        run: terraform validate    
+
       - name: Init and Apply Test Backend
         working-directory: terraform/environments/test
         run: |
           terraform init
-          terraform fmt -check
-          terraform validate
           terraform apply -auto-approve \
             -var="pr_number=${{ github.event.pull_request.number }}" \
             -var="resource_group_name=${RESOURCE_GROUP_NAME}" \
