@@ -112,7 +112,7 @@ resource "azurerm_storage_account" "res-storage-account" {
   table_encryption_key_type         = "Service"
   public_network_access_enabled     = true
   sftp_enabled                      = false
-  name                              = "frontteststor${random_id.res-ran-id.hex}"
+  name                              = "frontendstor${random_id.res-ran-id.hex}"
   resource_group_name               = var.resource_group_name
 
   blob_properties {

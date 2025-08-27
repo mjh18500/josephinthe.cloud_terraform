@@ -25,6 +25,7 @@ module "backend" {
   user_object_id       = "e9bcdf18-cd9d-4805-ad21-594dad348e61"
   service_principal_id = "f318ff35-9355-46b0-9eab-28dcc9a5c7cd"
   subscription_id      = var.subscription_id
+  env_name             = var.env_name
 }
 
 //storage_account_name must be unique
@@ -35,8 +36,7 @@ module "frontend" {
   resource_group_name = "Frontend_${var.resource_group_name}_${var.env_name}"
   fd_profile_name     = "Frontendfdprofile"
   subscription_id     = var.subscription_id
-  //cdn_profile_name     = "josephcloudcdnProfile"  
-  fd_endpoint_name = "test-${var.pr_number}"
+  fd_endpoint_name    = "prod-jcloud"
 }
 
 output "frontdoor_endpoint_url" {
