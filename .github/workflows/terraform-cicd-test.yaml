@@ -35,7 +35,9 @@ jobs:
       - name: Init and Apply Test Backend
         working-directory: terraform/environments/test
         run: |
-          terraform init 
+          terraform init
+          terraform fmt -check
+          terraform validate
           terraform apply -auto-approve \
             -var="pr_number=${{ github.event.pull_request.number }}" \
             -var="resource_group_name=${RESOURCE_GROUP_NAME}" \
@@ -59,9 +61,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Lint code
-        run: npm run lint
 
       - name: Get Frontdoor endpoint
         id: tf-output

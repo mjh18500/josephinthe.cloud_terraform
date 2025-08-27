@@ -1,10 +1,6 @@
 {
   "devDependencies": {
     "cypress": "^15.0.0"
-  },
-  "scripts": {
-    "lint": "terraform fmt -check && terraform validate",
-    "test:e2e": "CYPRESS_BASE_URL=https://test-111-cyfng3fshjfbb3e7.z02.azurefd.net cypress run"
-}
+  }
 }
 
