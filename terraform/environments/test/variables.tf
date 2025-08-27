@@ -19,3 +19,8 @@ variable "subscription_id" {
 variable "resource_group_name" {
   type        = string
 }
+
+variable "pr_number" {
+  type        = string
+  description = "GitHub PR number for preview environments"
+}

@@ -35,5 +35,18 @@ module "frontend" {
   resource_group_name  = "Frontend_${var.resource_group_name}_${var.env_name}"
   fd_profile_name      = "Frontendfdprofile"
   subscription_id      = var.subscription_id
-  cdn_profile_name     = "josephcloudcdnProfile"  
+  //cdn_profile_name     = "josephcloudcdnProfile"  
+  fd_endpoint_name     = "test-${var.pr_number}"
+}
+
+output "frontdoor_endpoint_url" {
+  value = module.frontend.frontdoor_endpoint_url
+}
+
+output "apim_api_url" {
+  value = module.backend.apim_api_url
+}
+
+output "function_app_url" {
+  value = module.backend.function_app_url
 }

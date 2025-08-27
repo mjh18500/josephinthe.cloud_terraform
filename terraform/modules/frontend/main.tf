@@ -33,7 +33,7 @@ resource "random_id" "res-ran-id" {
 resource "azurerm_cdn_frontdoor_endpoint" "res-cdn-frontdoor-end" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.res-cdnfrontdoor-profile.id
   enabled                  = true
-  name                     = "jcloud-fd-endpoint-${random_id.res-ran-id.hex}"
+  name                     = var.fd_endpoint_name
 }
 
 resource "azurerm_cdn_frontdoor_route" "res-cdn-frontdoor-route" {
@@ -148,6 +148,7 @@ resource "time_sleep" "res-app-service-sleep" {
     azurerm_storage_account.res-storage-account
   ]
 }
+/*
 resource "azurerm_storage_container" "res-storage-container" {
   container_access_type = "container"
   name                  = "$web"
@@ -156,6 +157,7 @@ resource "azurerm_storage_container" "res-storage-container" {
     azurerm_storage_account.res-storage-account,azurerm_storage_account_queue_properties.res-sa-queue-properties,time_sleep.res-app-service-sleep
   ]
 }
+*/
 resource "azurerm_storage_account_queue_properties" "res-sa-queue-properties" {
   storage_account_id = azurerm_storage_account.res-storage-account.id
   hour_metrics {
@@ -171,6 +173,7 @@ resource "azurerm_storage_account_queue_properties" "res-sa-queue-properties" {
     version = "1.0"
   }
 }
+/*
 resource "azurerm_cdn_profile" "res-cdn-profile" {
   location            = "global"
   name                = var.cdn_profile_name
@@ -180,13 +183,14 @@ resource "azurerm_cdn_profile" "res-cdn-profile" {
     azurerm_resource_group.res-frontend-rg
   ]
 }
-
+*/
 resource "azurerm_storage_account_static_website" "res-stor-acc-stat-site" {
   storage_account_id = azurerm_storage_account.res-storage-account.id
   error_404_document = "index.html"
   index_document     = "index.html"
 }
 
+/*
 resource "azurerm_cdn_endpoint" "res-cdn-endpoint" {
   content_types_to_compress     = ["application/eot", "application/font", "application/font-sfnt", "application/javascript", "application/json", "application/opentype", "application/otf", "application/pkcs7-mime", "application/truetype", "application/ttf", "application/vnd.ms-fontobject", "application/x-font-opentype", "application/x-font-truetype", "application/x-font-ttf", "application/x-httpd-cgi", "application/x-javascript", "application/x-mpegurl", "application/x-opentype", "application/x-otf", "application/x-perl", "application/x-ttf", "application/xhtml+xml", "application/xml", "application/xml+rss", "font/eot", "font/opentype", "font/otf", "font/ttf", "image/svg+xml", "text/css", "text/csv", "text/html", "text/javascript", "text/js", "text/plain", "text/richtext", "text/tab-separated-values", "text/x-component", "text/x-java-source", "text/x-script", "text/xml"]
   is_compression_enabled        = true
@@ -208,3 +212,4 @@ resource "azurerm_cdn_endpoint" "res-cdn-endpoint" {
     azurerm_cdn_profile.res-cdn-profile
   ]
 }
+*/

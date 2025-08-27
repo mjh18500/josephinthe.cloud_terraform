@@ -23,7 +23,7 @@ jobs:
     name: Deploy Test Infrastructure
     env:
       RESOURCE_GROUP_NAME: "test-${{ github.event.pull_request.number }}"
-      LOCATION: "eastus"
+      LOCATION: "eastus2"
     steps:
       - uses: actions/checkout@v4
 
@@ -37,6 +37,7 @@ jobs:
         run: |
           terraform init 
           terraform apply -auto-approve \
+            -var="pr_number=${{ github.event.pull_request.number }}" \
             -var="resource_group_name=${RESOURCE_GROUP_NAME}" \
             -var="location=${LOCATION}" \
             -var="env_name=test-${{ github.event.pull_request.number }}"
@@ -54,7 +55,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22.16.0
 
       - name: Install dependencies
         run: npm ci
@@ -62,9 +63,17 @@ jobs:
       - name: Lint code
         run: npm run lint
 
-      - name: Run Cypress E2E tests
+      - name: Get Frontdoor endpoint
+        id: tf-output
         run: |
-          CYPRESS_BASE_URL="https://test-${{ github.event.pull_request.number }}.azurefd.net"
-          npx cypress run
+          echo "FRONTDOOR_URL=$(terraform output -raw frontdoor_endpoint_url)" >> $GITHUB_ENV
+          echo "APIM_URL=$(terraform output -raw apim_api_url)" >> $GITHUB_ENV
+          echo "FUNCAPP_URL=$(terraform output -raw function_app_url)" >> $GITHUB_ENV
+      - name: Run Cypress E2E tests
+        run:  npx cypress run
+        env:
+          CYPRESS_BASE_URL: ${{ env.FRONTDOOR_URL }}
+          CYPRESS_APIM_URL: ${{ env.APIM_URL }}
+          CYPRESS_FUNCAPP_URL: ${{ env.FUNCAPP_URL }}
 
   
