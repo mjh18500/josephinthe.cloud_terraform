@@ -25,6 +25,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Ensure plugin cache dir exists
+      - name: Create plugin cache dir
+        run: mkdir -p ~/.terraform.d/plugin-cache
+
        # Cache Terraform providers (shared with test workflow)
       - name: Cache Terraform providers
         uses: actions/cache@v3
@@ -62,6 +66,10 @@ jobs:
     name: Run Cypress & E2E Tests
     steps:
       - uses: actions/checkout@v4
+
+      # Ensure plugin cache dir exists
+      - name: Create plugin cache dir
+        run: mkdir -p ~/.terraform.d/plugin-cache
 
       - name: Install Node.js
         uses: actions/setup-node@v4
