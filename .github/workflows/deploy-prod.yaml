@@ -135,7 +135,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Destroy PR Test Infrastructure
     env:
-      RESOURCE_GROUP_NAME: "test-${{ github.run_number }}"
+      ENV_ID: ${{ github.event.pull_request.number || github.run_number }}
+      RESOURCE_GROUP_NAME: "test-${{ github.event.pull_request.number || github.run_number }}"
       LOCATION: "eastus2"
     steps:
       - uses: actions/checkout@v4
@@ -168,7 +169,7 @@ jobs:
           terraform destroy -auto-approve \
             -var="subscription_id=${{ secrets.ARM_SUBSCRIPTION_ID }}" \
             -var="user_object_id=${{ secrets.ARM_USER_OBJECT_ID }}" \
-            -var="pr_number=${{ github.event.pull_request.number }}" \
+            -var="pr_number=${{ env.ENV_ID }}" \
             -var="resource_group_name=${RESOURCE_GROUP_NAME}" \
             -var="location=${LOCATION}" \
-            -var="env_name=test-${{ github.event.pull_request.number }}"
+            -var="env_name=test-${{ env.ENV_ID }}"
