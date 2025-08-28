@@ -3,8 +3,6 @@ name: Deploy Test Environment and Run Tests
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
 
 env:
   TF_VERSION: 1.7.0
@@ -78,12 +76,26 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy Test Infrastructure
     env:
-      # Conditional: use PR number if exists, otherwise run_number
-      ENV_ID: ${{ github.event.pull_request.number || github.run_number }}
-      RESOURCE_GROUP_NAME: "test-${{ github.event.pull_request.number || github.run_number }}"
+      ENV_ID: ${{ github.event.pull_request.number }}
+      RESOURCE_GROUP_NAME: "test-${{ github.event.pull_request.number }}"
       LOCATION: "eastus2"
+    outputs:
+      env_id: ${{ steps.set-env-id.outputs.env_id }}
     steps:
       - uses: actions/checkout@v4
+      
+      - id: set-env-id
+        run: echo "env_id=${{ env.ENV_ID }}" >> $GITHUB_OUTPUT
+
+      # save ENV_ID so deploy-prod.yaml can use it
+      - name: Write ENV_ID to file
+        run: echo "${{ env.ENV_ID }}" > env_id.txt
+
+      - name: Upload ENV_ID artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: env-id
+          path: env_id.txt
 
       # Ensure plugin cache dir exists
       - name: Create plugin cache dir
@@ -125,8 +137,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Run Cypress & E2E Tests
     env:
-      ENV_ID: ${{ github.event.pull_request.number || github.run_number }}
-      RESOURCE_GROUP_NAME: "test-${{ github.event.pull_request.number || github.run_number }}"
+      ENV_ID: test-${{ github.event.pull_request.number }}
+      RESOURCE_GROUP_NAME: "test-${{ github.event.pull_request.number }}"
     steps:
       - uses: actions/checkout@v4
 
