@@ -3,8 +3,7 @@ name: Deploy Production
 on:
   workflow_run:
     workflows: ["Deploy Test Environment and Run Tests"]
-    types:
-      - completed
+    types: [completed]
 
 env:
   TF_VERSION: 1.7.0
@@ -130,16 +129,22 @@ jobs:
 # 🧹 Destroy test infra after merge
 # --------------------------------------
   cleanup:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     needs: deploy-prod   # wait until production deploy succeeds
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     name: Destroy PR Test Infrastructure
-    env:
-      ENV_ID: ${{ github.event.pull_request.number || github.run_number }}
-      RESOURCE_GROUP_NAME: "test-${{ github.event.pull_request.number || github.run_number }}"
-      LOCATION: "eastus2"
     steps:
       - uses: actions/checkout@v4
+
+      # 🔑 Download ENV_ID saved in PR workflow
+      - name: Download ENV_ID artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: env-id
+
+      - name: Read ENV_ID
+        id: read-env
+        run: echo "ENV_ID=$(cat env_id.txt)" >> $GITHUB_ENV
 
       # Ensure plugin cache dir exists
       - name: Create plugin cache dir
@@ -170,6 +175,6 @@ jobs:
             -var="subscription_id=${{ secrets.ARM_SUBSCRIPTION_ID }}" \
             -var="user_object_id=${{ secrets.ARM_USER_OBJECT_ID }}" \
             -var="pr_number=${{ env.ENV_ID }}" \
-            -var="resource_group_name=${RESOURCE_GROUP_NAME}" \
-            -var="location=${LOCATION}" \
+            -var="resource_group_name=test-${{ env.ENV_ID }}" \
+            -var="location=eastus2" \
             -var="env_name=test-${{ env.ENV_ID }}"
