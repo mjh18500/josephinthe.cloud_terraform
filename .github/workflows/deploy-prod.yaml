@@ -1,0 +1,127 @@
+name: Deploy Production
+
+on:
+  workflow_run:
+    workflows: ["Deploy Test Environment and Run Tests"]
+    types:
+      - completed
+
+env:
+  TF_VERSION: 1.7.0
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}      
+
+jobs:
+  deploy-prod:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    name: Deploy to Production
+    environment:
+      name: production
+      url: https://josephinthe.cloud
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Ensure plugin cache dir exists
+      - name: Create plugin cache dir
+        run: mkdir -p ~/.terraform.d/plugin-cache
+
+       # Cache Terraform providers (shared with test workflow)
+      - name: Cache Terraform providers
+        uses: actions/cache@v3
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-${{ env.TF_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure Terraform plugin cache dir
+        run: echo "TF_PLUGIN_CACHE_DIR=$HOME/.terraform.d/plugin-cache" >> $GITHUB_ENV
+
+      - name: Init and Apply Production
+        working-directory: terraform/environments/prod
+        run: |
+          terraform init
+          terraform validate
+          terraform apply -auto-approve \
+            -var="subscription_id=${{ secrets.ARM_SUBSCRIPTION_ID }}" \
+            -var="user_object_id=${{ secrets.ARM_USER_OBJECT_ID }}" \
+            -var="resource_group_name=prodrg" \
+            -var="location=eastus2" \
+            -var="env_name=prod"
+# -------------------------------------
+# ✅ Run Cypress E2E Tests
+# -------------------------------------
+  prodtest:
+    needs: deploy-prod
+    runs-on: ubuntu-latest
+    name: Run Cypress & E2E Tests
+    steps:
+      - uses: actions/checkout@v4
+
+      # Ensure plugin cache dir exists
+      - name: Create plugin cache dir
+        run: mkdir -p ~/.terraform.d/plugin-cache
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+
+      # ✅ Cache Node dependencies
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-      
+
+      - name: Install dependencies
+        run: npm ci
+
+       # Reuse Terraform provider cache
+      - name: Cache Terraform providers
+        uses: actions/cache@v3
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-${{ env.TF_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-  
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          
+      - name: Configure Terraform plugin cache dir
+        run: echo "TF_PLUGIN_CACHE_DIR=$HOME/.terraform.d/plugin-cache" >> $GITHUB_ENV   
+
+      - name: Init Backend
+        working-directory: terraform/environments/prod
+        run: terraform init
+
+      - name: Get Terraform Outputs
+        working-directory: terraform/environments/prod
+        id: tf-output
+        run: |
+          echo "FRONTDOOR_URL=$(terraform output -raw frontdoor_endpoint_url)" >> $GITHUB_ENV
+          echo "APIM_URL=$(terraform output -raw apim_api_url)" >> $GITHUB_ENV
+          echo "FUNCAPP_URL=$(terraform output -raw function_app_url)" >> $GITHUB_ENV
+          echo "COSMOSDB_URL=$(terraform output -raw cosmosdb_url)" >> $GITHUB_ENV      
+
+      - name: Run Cypress E2E prod
+        run:  npx cypress run
+        env:
+          CYPRESS_BASE_URL: ${{ env.FRONTDOOR_URL }}
+          CYPRESS_APIM_URL: ${{ env.APIM_URL }}
+          CYPRESS_FUNCAPP_URL: ${{ env.FUNCAPP_URL }}
+          CYPRESS_COSMOSDB_URL: ${{ env.COSMOSDB_URL }}

@@ -6,7 +6,6 @@ variable "env_name" {
 variable "location" {
   description = "Location for Azure Resources"
   type        = string
-  default     = "eastus2"
 }
 
 variable "subscription_id" {
@@ -21,4 +20,9 @@ variable "resource_group_name" {
 variable "pr_number" {
   type        = string
   description = "GitHub PR number for preview environments"
+}
+
+variable "user_object_id" {
+  description = "User Object ID used for role assigments"
+  type        = string
 }

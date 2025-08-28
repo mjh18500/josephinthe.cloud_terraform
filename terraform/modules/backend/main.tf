@@ -10,15 +10,21 @@ resource "azurerm_api_management" "res-api-management" {
   gateway_disabled              = false
   public_network_access_enabled = true
   virtual_network_type          = "None"
-  location            = var.location
-  name                = "jcloud${var.env_name}-apim-${random_id.res-ran-id.hex}"
-  publisher_email     = var.api_publisher_email
-  publisher_name      = var.api_publisher_name
-  resource_group_name = azurerm_resource_group.res-backend-rg.name
-  sku_name            = "Consumption_0"
+  location                      = var.location
+  name                          = "jcloud${var.env_name}-apim-${random_id.res-ran-id.hex}"
+  publisher_email               = var.api_publisher_email
+  publisher_name                = var.api_publisher_name
+  resource_group_name           = azurerm_resource_group.res-backend-rg.name
+  sku_name                      = "Consumption_0"
 
   identity {
     type = "SystemAssigned"
+  }
+
+  timeouts {
+    create = "90m"
+    update = "90m"
+    delete = "90m"
   }
 
   depends_on = [
@@ -29,7 +35,7 @@ resource "azurerm_api_management" "res-api-management" {
 locals {
   clean_function_app_name = lower("jcloud-${var.env_name}funcapp-${random_id.res-ran-id.hex}")
   api_base_path           = local.clean_function_app_name
-  revision                = 1  
+  revision                = 1
   revision_suffix         = format(";rev=%s", local.revision)
 }
 
@@ -45,13 +51,13 @@ data "template_file" "api_spec" {
 }
 
 resource "azurerm_api_management_api" "res-api-man-api" {
-  name                = "${var.env_name}_API"
-  resource_group_name = azurerm_api_management.res-api-management.resource_group_name
-  api_management_name = azurerm_api_management.res-api-management.name
-  revision            = local.revision
-  display_name        = var.api_title
-  path                = local.api_base_path
-  protocols           = ["https"]
+  name                  = "${var.env_name}_API"
+  resource_group_name   = azurerm_api_management.res-api-management.resource_group_name
+  api_management_name   = azurerm_api_management.res-api-management.name
+  revision              = local.revision
+  display_name          = var.api_title
+  path                  = local.api_base_path
+  protocols             = ["https"]
   subscription_required = false
 
   import {
@@ -115,7 +121,7 @@ resource "azurerm_api_management_api_operation_policy" "res-api-operation-policy
   xml_content = templatefile("${path.module}/apim-policy.xml.tmpl", {
     function_key = azurerm_api_management_named_value.res-api-management-named-value.value
     backend_id   = azurerm_api_management_backend.res-api-management-backend.name
-    base_path  = local.api_base_path
+    base_path    = local.api_base_path
     backend_url  = "https://${azurerm_linux_function_app.res-lin-func-app.name}.azurewebsites.net"
   })
   depends_on = [
@@ -136,7 +142,7 @@ resource "azurerm_api_management_backend" "res-api-management-backend" {
     }
   }
   depends_on = [
-    azurerm_api_management.res-api-management,azurerm_resource_group.res-backend-rg,azurerm_linux_function_app.res-lin-func-app
+    azurerm_api_management.res-api-management, azurerm_resource_group.res-backend-rg, azurerm_linux_function_app.res-lin-func-app
   ]
 }
 
@@ -162,7 +168,7 @@ resource "azurerm_api_management_named_value" "res-api-management-named-value" {
   secret              = true
   tags                = ["key", "function", "auto"]
   depends_on = [
-    azurerm_api_management.res-api-management,azurerm_resource_group.res-backend-rg
+    azurerm_api_management.res-api-management, azurerm_resource_group.res-backend-rg
   ]
 }
 
@@ -180,32 +186,32 @@ resource "azurerm_api_management_subscription" "res-api-man-sub3" {
   display_name        = "public"
   resource_group_name = azurerm_resource_group.res-backend-rg.name
   state               = "active"
-    
+
   depends_on = [
-    azurerm_resource_group.res-backend-rg,azurerm_api_management.res-api-management,azurerm_api_management_api.res-api-man-api
+    azurerm_resource_group.res-backend-rg, azurerm_api_management.res-api-management, azurerm_api_management_api.res-api-man-api
   ]
 }
 
 resource "azurerm_cosmosdb_account" "res-cosmosdb-account" {
-  access_key_metadata_writes_enabled           = true
-  analytical_storage_enabled                   = false
-  automatic_failover_enabled                   = true
-  burst_capacity_enabled                       = false
-  create_mode                                  = "Default"
-  default_identity_type                        = "FirstPartyIdentity"
-  free_tier_enabled                            = false
-  is_virtual_network_filter_enabled            = false
-  kind                                         = "GlobalDocumentDB"
-  local_authentication_disabled                = false
-  minimal_tls_version                          = "Tls12"
-  multiple_write_locations_enabled             = false
-  network_acl_bypass_for_azure_services        = false
-  offer_type                                   = "Standard"
-  partition_merge_enabled                      = false
-  public_network_access_enabled                = true
-  location                   = var.location
-  name                       = var.cosmosdb_name
-  resource_group_name        = azurerm_resource_group.res-backend-rg.name
+  access_key_metadata_writes_enabled    = true
+  analytical_storage_enabled            = false
+  automatic_failover_enabled            = true
+  burst_capacity_enabled                = false
+  create_mode                           = "Default"
+  default_identity_type                 = "FirstPartyIdentity"
+  free_tier_enabled                     = false
+  is_virtual_network_filter_enabled     = false
+  kind                                  = "GlobalDocumentDB"
+  local_authentication_disabled         = false
+  minimal_tls_version                   = "Tls12"
+  multiple_write_locations_enabled      = false
+  network_acl_bypass_for_azure_services = false
+  offer_type                            = "Standard"
+  partition_merge_enabled               = false
+  public_network_access_enabled         = true
+  location                              = var.location
+  name                                  = var.cosmosdb_name
+  resource_group_name                   = azurerm_resource_group.res-backend-rg.name
   tags = {
     defaultExperience       = "Azure Table"
     hidden-cosmos-mmspecial = ""
@@ -215,8 +221,8 @@ resource "azurerm_cosmosdb_account" "res-cosmosdb-account" {
     schema_type = "WellDefined"
   }
   backup {
-    tier                = "Continuous7Days"
-    type                = "Continuous"
+    tier = "Continuous7Days"
+    type = "Continuous"
   }
   capabilities {
     name = "EnableServerless"
@@ -304,48 +310,48 @@ resource "azurerm_storage_account" "res-storage-account" {
     retention_policy {
       days = 7
     }
-  } 
+  }
   depends_on = [
     azurerm_resource_group.res-backend-rg
   ]
 }
 resource "azurerm_role_assignment" "res-role-assi" {
-  principal_id                           = var.user_object_id
-  principal_type                         = "User"
-  role_definition_name                   = "Storage Blob Data Contributor"
-  scope                                  = azurerm_storage_account.res-storage-account.id
+  principal_id         = var.user_object_id
+  principal_type       = "User"
+  role_definition_name = "Storage Blob Data Contributor"
+  scope                = azurerm_storage_account.res-storage-account.id
   depends_on = [
-    azurerm_resource_group.res-backend-rg,azurerm_storage_account.res-storage-account
+    azurerm_resource_group.res-backend-rg, azurerm_storage_account.res-storage-account
   ]
 }
 resource "azurerm_role_assignment" "res-role-assi2" {
-  principal_id                           = var.user_object_id
-  principal_type                         = "User"
-  role_definition_name                   = "Storage Blob Data Reader"
-  scope                                  = azurerm_storage_account.res-storage-account.id
+  principal_id         = var.user_object_id
+  principal_type       = "User"
+  role_definition_name = "Storage Blob Data Reader"
+  scope                = azurerm_storage_account.res-storage-account.id
   depends_on = [
-    azurerm_resource_group.res-backend-rg,azurerm_storage_account.res-storage-account
+    azurerm_resource_group.res-backend-rg, azurerm_storage_account.res-storage-account
   ]
 }
 resource "azurerm_storage_container" "res-storage-container" {
   name               = "azure-webjobs-hosts"
   storage_account_id = azurerm_storage_account.res-storage-account.id
   depends_on = [
-    azurerm_resource_group.res-backend-rg,azurerm_storage_account.res-storage-account,azurerm_storage_account_queue_properties.res-stor-acc-queu-prop
+    azurerm_resource_group.res-backend-rg, azurerm_storage_account.res-storage-account, azurerm_storage_account_queue_properties.res-stor-acc-queu-prop
   ]
 }
 resource "azurerm_storage_container" "res-storage-container1" {
   name               = "azure-webjobs-secrets"
   storage_account_id = azurerm_storage_account.res-storage-account.id
   depends_on = [
-    azurerm_resource_group.res-backend-rg,azurerm_storage_account.res-storage-account,azurerm_storage_account_queue_properties.res-stor-acc-queu-prop
+    azurerm_resource_group.res-backend-rg, azurerm_storage_account.res-storage-account, azurerm_storage_account_queue_properties.res-stor-acc-queu-prop
   ]
 }
 resource "azurerm_storage_container" "res-storage-container2" {
   name               = "scm-releases"
   storage_account_id = azurerm_storage_account.res-storage-account.id
   depends_on = [
-    azurerm_resource_group.res-backend-rg,azurerm_storage_account.res-storage-account,azurerm_storage_account_queue_properties.res-stor-acc-queu-prop
+    azurerm_resource_group.res-backend-rg, azurerm_storage_account.res-storage-account, azurerm_storage_account_queue_properties.res-stor-acc-queu-prop
   ]
 }
 resource "azurerm_storage_account_queue_properties" "res-stor-acc-queu-prop" {
@@ -403,33 +409,33 @@ resource "time_sleep" "res-app-service-sleep" {
 
 
 resource "azurerm_linux_function_app" "res-lin-func-app" {
-  name                = "jcloud-${var.env_name}funcapp-${random_id.res-ran-id.hex}"
-  resource_group_name = azurerm_resource_group.res-backend-rg.name
-  location            = var.location
+  name                          = "jcloud-${var.env_name}funcapp-${random_id.res-ran-id.hex}"
+  resource_group_name           = azurerm_resource_group.res-backend-rg.name
+  location                      = var.location
   public_network_access_enabled = true
-  service_plan_id        = azurerm_service_plan.res-service-plan.id
-  storage_account_name   = azurerm_storage_account.res-storage-account.name
-  storage_account_access_key = azurerm_storage_account.res-storage-account.primary_access_key
-  https_only = true
+  service_plan_id               = azurerm_service_plan.res-service-plan.id
+  storage_account_name          = azurerm_storage_account.res-storage-account.name
+  storage_account_access_key    = azurerm_storage_account.res-storage-account.primary_access_key
+  https_only                    = true
 
   site_config {
-    app_scale_limit                   = 200
-    always_on                        = false
-    http2_enabled                    = false
-    use_32_bit_worker                = false
-    vnet_route_all_enabled           = false
-    worker_count                     = 1
-    managed_pipeline_mode            = "Integrated"
-    load_balancing_mode              = "LeastRequests"
-    api_management_api_id            = azurerm_api_management_api.res-api-man-api.id
-    ip_restriction_default_action    = "Allow"
-    scm_ip_restriction_default_action = "Allow"
-    scm_use_main_ip_restriction       = false
-    ftps_state                        = "FtpsOnly"
+    app_scale_limit                        = 200
+    always_on                              = false
+    http2_enabled                          = false
+    use_32_bit_worker                      = false
+    vnet_route_all_enabled                 = false
+    worker_count                           = 1
+    managed_pipeline_mode                  = "Integrated"
+    load_balancing_mode                    = "LeastRequests"
+    api_management_api_id                  = azurerm_api_management_api.res-api-man-api.id
+    ip_restriction_default_action          = "Allow"
+    scm_ip_restriction_default_action      = "Allow"
+    scm_use_main_ip_restriction            = false
+    ftps_state                             = "FtpsOnly"
     application_insights_connection_string = azurerm_application_insights.res-app-insights.connection_string
-    application_insights_key          = azurerm_application_insights.res-app-insights.instrumentation_key
+    application_insights_key               = azurerm_application_insights.res-app-insights.instrumentation_key
 
-    default_documents= [
+    default_documents = [
       "Default.htm",
       "Default.html",
       "Default.asp",
@@ -440,12 +446,12 @@ resource "azurerm_linux_function_app" "res-lin-func-app" {
       "index.php"
     ]
     application_stack {
-      python_version                   = "3.12"
-  }
+      python_version = "3.12"
+    }
   }
 
   sticky_settings {
-    app_setting_names       = [
+    app_setting_names = [
       "APPINSIGHTS_INSTRUMENTATIONKEY",
       "APPLICATIONINSIGHTS_CONNECTION_STRING ",
       "APPINSIGHTS_PROFILERFEATURE_VERSION",
@@ -463,18 +469,18 @@ resource "azurerm_linux_function_app" "res-lin-func-app" {
     ]
   }
 
-  tags                      = {
-   "hidden-link: /app-insights-resource-id" = azurerm_application_insights.res-app-insights.id
+  tags = {
+    "hidden-link: /app-insights-resource-id" = azurerm_application_insights.res-app-insights.id
   }
 
   app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME" = "python"
-    "AzureWebJobsFeatureFlags" = "EnableWorkerIndexing"
+    "FUNCTIONS_WORKER_RUNTIME"      = "python"
+    "AzureWebJobsFeatureFlags"      = "EnableWorkerIndexing"
     "AZURE_COSMOS_CONNECTIONSTRING" = "DefaultEndpointsProtocol=https;AccountName=${azurerm_cosmosdb_account.res-cosmosdb-account.name};AccountKey=${azurerm_cosmosdb_account.res-cosmosdb-account.primary_key};TableEndpoint=https://${azurerm_cosmosdb_account.res-cosmosdb-account.name}.table.cosmos.azure.com:443/;"
   }
 
   depends_on = [
-    azurerm_service_plan.res-service-plan,azurerm_resource_group.res-backend-rg,azurerm_storage_account.res-storage-account,azurerm_api_management.res-api-management
+    azurerm_service_plan.res-service-plan, azurerm_resource_group.res-backend-rg, azurerm_storage_account.res-storage-account, azurerm_api_management.res-api-management
   ]
 }
 //may not need. created automatically
@@ -506,12 +512,12 @@ resource "azurerm_monitor_smart_detector_alert_rule" "res-mon-alert-rule" {
 }
 */
 resource "azurerm_application_insights" "res-app-insights" {
-  application_type    = "web"
-  location            = var.location
-  name                = "${var.env_name}-appinsights"
-  workspace_id        = azurerm_log_analytics_workspace.res-log-analytics-workspace.id
-  resource_group_name = azurerm_resource_group.res-backend-rg.name
-  sampling_percentage = 0
+  application_type                      = "web"
+  location                              = var.location
+  name                                  = "${var.env_name}-appinsights"
+  workspace_id                          = azurerm_log_analytics_workspace.res-log-analytics-workspace.id
+  resource_group_name                   = azurerm_resource_group.res-backend-rg.name
+  sampling_percentage                   = 0
   daily_data_cap_in_gb                  = 100
   daily_data_cap_notifications_disabled = false
   disable_ip_masking                    = false
@@ -521,7 +527,7 @@ resource "azurerm_application_insights" "res-app-insights" {
   local_authentication_disabled         = false
   retention_in_days                     = 90
   depends_on = [
-    azurerm_resource_group.res-backend-rg,azurerm_log_analytics_workspace.res-log-analytics-workspace
+    azurerm_resource_group.res-backend-rg, azurerm_log_analytics_workspace.res-log-analytics-workspace
   ]
 }
 resource "azurerm_monitor_diagnostic_setting" "res-mon-diag-set" {
@@ -547,15 +553,15 @@ resource "azurerm_monitor_metric_alert" "res-mon-metr-alert" {
   severity            = 1
   window_size         = "PT1M"
   criteria {
-    aggregation      = "Count"
-    metric_name      = "http_trigger Failures"
-    metric_namespace = "azure.applicationinsights"
-    operator         = "GreaterThan"
-    threshold        = 1
+    aggregation            = "Count"
+    metric_name            = "http_trigger Failures"
+    metric_namespace       = "azure.applicationinsights"
+    operator               = "GreaterThan"
+    threshold              = 1
     skip_metric_validation = true
   }
   depends_on = [
-    azurerm_resource_group.res-backend-rg,azurerm_application_insights.res-app-insights
+    azurerm_resource_group.res-backend-rg, azurerm_application_insights.res-app-insights
   ]
 }
 //not using right now
@@ -588,15 +594,15 @@ resource "azurerm_monitor_metric_alert" "res-mon-metr-alert2" {
   severity            = 2
   window_size         = "PT1M"
   criteria {
-    aggregation      = "Total"
-    metric_name      = "http_trigger Count"
-    metric_namespace = "azure.applicationinsights"
-    operator         = "GreaterThan"
-    threshold        = 50
+    aggregation            = "Total"
+    metric_name            = "http_trigger Count"
+    metric_namespace       = "azure.applicationinsights"
+    operator               = "GreaterThan"
+    threshold              = 50
     skip_metric_validation = true
   }
   depends_on = [
-    azurerm_resource_group.res-backend-rg,azurerm_application_insights.res-app-insights
+    azurerm_resource_group.res-backend-rg, azurerm_application_insights.res-app-insights
   ]
 }
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "res-mon-query-rule-alert" {
@@ -621,6 +627,6 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "res-mon-query-rule-al
     }
   }
   depends_on = [
-    azurerm_resource_group.res-backend-rg,azurerm_application_insights.res-app-insights
+    azurerm_resource_group.res-backend-rg, azurerm_application_insights.res-app-insights
   ]
 }

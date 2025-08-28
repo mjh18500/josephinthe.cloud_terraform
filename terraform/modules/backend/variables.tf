@@ -1,45 +1,29 @@
 variable "resource_group_name" {
-  type        = string
+  type = string
 }
 
 variable "location" {
-  type        = string
+  type = string
 }
 
 variable "api_publisher_name" {
-  type        = string
+  type = string
 }
 
 variable "api_publisher_email" {
-  type        = string
+  type = string
 }
 
 variable "cosmosdb_name" {
-  type        = string
+  type = string
 }
 
 variable "user_object_id" {
-  type        = string
-}
-
-variable "location_short" {
-  type        = string
+  type = string
 }
 
 variable "subscription_id" {
-  type        = string
-}
-
-variable "api_first_name" {
-  type        = string
-}
-
-variable "api_last_name" {
-  type        = string
-}
-
-variable "service_principal_id" {
-  type        = string
+  type = string
 }
 
 variable "api_title" {
@@ -48,5 +32,5 @@ variable "api_title" {
 }
 
 variable "env_name" {
-  type       = string
+  type = string
 }
