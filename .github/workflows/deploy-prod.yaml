@@ -125,3 +125,50 @@ jobs:
           CYPRESS_APIM_URL: ${{ env.APIM_URL }}
           CYPRESS_FUNCAPP_URL: ${{ env.FUNCAPP_URL }}
           CYPRESS_COSMOSDB_URL: ${{ env.COSMOSDB_URL }}
+
+# --------------------------------------
+# 🧹 Destroy test infra after merge
+# --------------------------------------
+  cleanup:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    needs: deploy-prod   # wait until production deploy succeeds
+    runs-on: ubuntu-latest
+    name: Destroy PR Test Infrastructure
+    env:
+      RESOURCE_GROUP_NAME: "test-${{ github.run_number }}"
+      LOCATION: "eastus2"
+    steps:
+      - uses: actions/checkout@v4
+
+      # Ensure plugin cache dir exists
+      - name: Create plugin cache dir
+        run: mkdir -p ~/.terraform.d/plugin-cache
+
+      # Cache Terraform providers
+      - name: Cache Terraform providers
+        uses: actions/cache@v3
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-${{ env.TF_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure Terraform plugin cache dir
+        run: echo "TF_PLUGIN_CACHE_DIR=$HOME/.terraform.d/plugin-cache" >> $GITHUB_ENV
+
+      - name: Terraform Destroy
+        working-directory: terraform/environments/test
+        run: |
+          terraform init
+          terraform destroy -auto-approve \
+            -var="subscription_id=${{ secrets.ARM_SUBSCRIPTION_ID }}" \
+            -var="user_object_id=${{ secrets.ARM_USER_OBJECT_ID }}" \
+            -var="pr_number=${{ github.event.pull_request.number }}" \
+            -var="resource_group_name=${RESOURCE_GROUP_NAME}" \
+            -var="location=${LOCATION}" \
+            -var="env_name=test-${{ github.event.pull_request.number }}"
