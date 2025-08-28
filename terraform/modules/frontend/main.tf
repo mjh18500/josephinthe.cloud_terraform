@@ -36,6 +36,7 @@ resource "azurerm_cdn_frontdoor_endpoint" "res-cdn-frontdoor-end" {
   name                     = var.fd_endpoint_name
 }
 
+/*
 resource "azurerm_cdn_frontdoor_route" "res-cdn-frontdoor-route" {
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.res-cdn-frontdoor-end.id
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.res-fd-origin-group.id
@@ -44,6 +45,8 @@ resource "azurerm_cdn_frontdoor_route" "res-cdn-frontdoor-route" {
   patterns_to_match               = ["/*"]
   supported_protocols             = ["Http", "Https"]
 }
+
+*/
 
 //not using custom domain
 /*
