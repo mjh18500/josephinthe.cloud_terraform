@@ -487,7 +487,7 @@ resource "azurerm_app_service_custom_hostname_binding" "res-app-serv-cust-host-b
     azurerm_resource_group.res-backend-rg,azurerm_service_plan.res-service-plan,time_sleep.res-app-service-sleep
   ]
 }
-*/
+
 resource "azurerm_monitor_smart_detector_alert_rule" "res-mon-alert-rule" {
   description         = "Failure Anomalies notifies you of an unusual rise in the rate of failed HTTP requests or dependency calls."
   detector_type       = "FailureAnomaliesDetector"
@@ -504,6 +504,7 @@ resource "azurerm_monitor_smart_detector_alert_rule" "res-mon-alert-rule" {
     azurerm_resource_group.res-backend-rg,azurerm_application_insights.res-app-insights
   ]
 }
+*/
 resource "azurerm_application_insights" "res-app-insights" {
   application_type    = "web"
   location            = var.location

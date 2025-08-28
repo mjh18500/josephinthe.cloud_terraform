@@ -40,6 +40,17 @@ module "frontend" {
   fd_endpoint_name    = "test-${var.pr_number}"
 }
 
+resource "azurerm_cdn_frontdoor_route" "res-cdn-frontdoor-route" {
+  cdn_frontdoor_endpoint_id       = module.frontend.fd_endpoint_id
+  cdn_frontdoor_origin_group_id   = module.frontend.fd_origin_group_id
+  cdn_frontdoor_origin_ids        = [module.frontend.fd_origin_id]
+
+  name                            = "default-route"
+  patterns_to_match               = ["/*"]
+  enabled                         = true
+  supported_protocols             = ["Http", "Https"]
+}
+
 output "frontdoor_endpoint_url" {
   value = module.frontend.frontdoor_endpoint_url
 }
