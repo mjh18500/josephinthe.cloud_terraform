@@ -21,6 +21,12 @@ resource "azurerm_api_management" "res-api-management" {
     type = "SystemAssigned"
   }
 
+  timeouts {
+    create = "90m"
+    update = "90m"
+    delete = "90m"
+  }
+
   depends_on = [
     azurerm_resource_group.res-backend-rg
   ]
