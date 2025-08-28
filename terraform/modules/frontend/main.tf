@@ -36,40 +36,6 @@ resource "azurerm_cdn_frontdoor_endpoint" "res-cdn-frontdoor-end" {
   name                     = var.fd_endpoint_name
 }
 
-/*
-resource "azurerm_cdn_frontdoor_route" "res-cdn-frontdoor-route" {
-  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.res-cdn-frontdoor-end.id
-  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.res-fd-origin-group.id
-  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.res-cdn-fd-origin.id]
-  name                            = "default-route"
-  patterns_to_match               = ["/*"]
-  supported_protocols             = ["Http", "Https"]
-}
-
-*/
-
-//not using custom domain
-/*
-resource "azurerm_cdn_frontdoor_route" "res-cdn-frontdoor-route" {
-  //not using custom domain
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.res-fd-custom-domain.id]
-  cdn_frontdoor_endpoint_id       = "/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Cdn/profiles/${var.fd_profile_name}/afdEndpoints/cdnFDendpoint001"
-  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.res-fd-origin-group.id
-  name                            = "default-route"
-  patterns_to_match               = ["/*"]
-  supported_protocols             = ["Http", "Https"]
-}
-
-
-resource "azurerm_cdn_frontdoor_custom_domain" "res-fd-custom-domain" {
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.res-cdnfrontdoor-profile.id
-  host_name                = "josephinthe.cloud"
-  name                     = "josephinthe-cloud-4945"
-  tls {
-  }
-}
-*/
-
 resource "azurerm_cdn_frontdoor_origin_group" "res-fd-origin-group" {
   cdn_frontdoor_profile_id                                  = azurerm_cdn_frontdoor_profile.res-cdnfrontdoor-profile.id
   name                                                      = "default-origin-group-723f3aac001"
@@ -96,8 +62,8 @@ resource "azurerm_cdn_frontdoor_origin" "res-cdn-fd-origin" {
 resource "azurerm_storage_account" "res-storage-account" {
   access_tier                       = "Hot"
   account_kind                      = "StorageV2"
-  account_replication_type = "LRS"
-  account_tier             = "Standard"
+  account_replication_type          = "LRS"
+  account_tier                      = "Standard"
   allow_nested_items_to_be_public   = true
   cross_tenant_replication_enabled  = false
   default_to_oauth_authentication   = false
@@ -119,9 +85,9 @@ resource "azurerm_storage_account" "res-storage-account" {
   resource_group_name               = var.resource_group_name
 
   blob_properties {
-    change_feed_enabled           = false
-    last_access_time_enabled      = false
-    versioning_enabled            = false
+    change_feed_enabled      = false
+    last_access_time_enabled = false
+    versioning_enabled       = false
     container_delete_retention_policy {
       days = 7
     }
@@ -132,9 +98,9 @@ resource "azurerm_storage_account" "res-storage-account" {
   }
 
   network_rules {
-    bypass                     = ["AzureServices"]
-    default_action             = "Allow"
-    ip_rules                   = ["67.48.4.44", "68.206.248.42", "184.92.107.198"]
+    bypass         = ["AzureServices"]
+    default_action = "Allow"
+    ip_rules       = ["67.48.4.44", "68.206.248.42", "184.92.107.198"]
   }
   share_properties {
     retention_policy {

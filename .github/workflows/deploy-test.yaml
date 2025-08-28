@@ -1,0 +1,170 @@
+name: Deploy Test Environment and Run Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  TF_VERSION: 1.7.0
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+jobs:
+  # -----------------------------------
+  # 🧹 Lint Terraform Code
+  # -----------------------------------
+  lint:
+    runs-on: ubuntu-latest
+    name: Terraform Lint
+    steps:
+      - uses: actions/checkout@v4
+
+       # Cache Terraform providers
+      - name: Cache Terraform providers
+        uses: actions/cache@v3
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-${{ env.TF_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+
+      # Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure Terraform plugin cache dir
+        run: echo "TF_PLUGIN_CACHE_DIR=$HOME/.terraform.d/plugin-cache" >> $GITHUB_ENV    
+
+      # Install TFLint
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      # Run terraform fmt + validate
+      - name: Terraform Format & Validate
+        working-directory: terraform/environments/test
+        run: |
+          terraform fmt -check -recursive
+          terraform init -backend=false
+          terraform validate
+
+      # Run TFLint
+      - name: Run TFLint (test env + modules)
+        run: |
+          tflint --chdir=terraform/environments/test
+          tflint --chdir=terraform/modules/backend
+          tflint --chdir=terraform/modules/frontend
+
+  # -------------------------------
+  # 🧪 Deploy PR-specific test env
+  # -------------------------------
+  deploy-test-env:
+    needs: lint   # ⬅️ require lint to pass first
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    name: Deploy Test Infrastructure
+    env:
+      RESOURCE_GROUP_NAME: "test-${{ github.event.pull_request.number }}"
+      LOCATION: "eastus2"
+    steps:
+      - uses: actions/checkout@v4
+      
+       # Reuse same provider cache
+      - name: Cache Terraform providers
+        uses: actions/cache@v3
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-${{ env.TF_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+          
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}  
+          
+      - name: Configure Terraform plugin cache dir
+        run: echo "TF_PLUGIN_CACHE_DIR=$HOME/.terraform.d/plugin-cache" >> $GITHUB_ENV    
+
+      - name: Init and Apply Test Backend
+        working-directory: terraform/environments/test
+        run: |
+          terraform init
+          terraform apply -auto-approve \
+            -var="subscription_id=${{ secrets.ARM_SUBSCRIPTION_ID }}" \
+            -var="user_object_id=${{ secrets.ARM_USER_OBJECT_ID }}" \
+            -var="pr_number=${{ github.event.pull_request.number }}" \
+            -var="resource_group_name=${RESOURCE_GROUP_NAME}" \
+            -var="location=${LOCATION}" \
+            -var="env_name=test-${{ github.event.pull_request.number }}"
+  # -------------------------------------
+  # ✅ Run Cypress E2E Tests
+  # -------------------------------------
+  test:
+    needs: deploy-test-env
+    runs-on: ubuntu-latest
+    name: Run Cypress & E2E Tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+
+      # ✅ Cache Node dependencies
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-      
+
+      - name: Install dependencies
+        run: npm ci
+
+       # Reuse Terraform provider cache
+      - name: Cache Terraform providers
+        uses: actions/cache@v3
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-${{ env.TF_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-  
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          
+      - name: Configure Terraform plugin cache dir
+        run: echo "TF_PLUGIN_CACHE_DIR=$HOME/.terraform.d/plugin-cache" >> $GITHUB_ENV   
+
+      - name: Init Backend
+        working-directory: terraform/environments/test
+        run: terraform init
+
+      - name: Get Terraform Outputs
+        working-directory: terraform/environments/test
+        id: tf-output
+        run: |
+          echo "FRONTDOOR_URL=$(terraform output -raw frontdoor_endpoint_url)" >> $GITHUB_ENV
+          echo "APIM_URL=$(terraform output -raw apim_api_url)" >> $GITHUB_ENV
+          echo "FUNCAPP_URL=$(terraform output -raw function_app_url)" >> $GITHUB_ENV
+          echo "COSMOSDB_URL=$(terraform output -raw cosmosdb_url)" >> $GITHUB_ENV      
+
+      - name: Run Cypress E2E tests
+        run:  npx cypress run
+        env:
+          CYPRESS_BASE_URL: ${{ env.FRONTDOOR_URL }}
+          CYPRESS_APIM_URL: ${{ env.APIM_URL }}
+          CYPRESS_FUNCAPP_URL: ${{ env.FUNCAPP_URL }}
+          CYPRESS_COSMOSDB_URL: ${{ env.COSMOSDB_URL }}

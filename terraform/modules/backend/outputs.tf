@@ -9,3 +9,8 @@ output "function_app_url" {
   description = "The Function App default root URL"
   value       = "https://${azurerm_linux_function_app.res-lin-func-app.default_hostname}"
 }
+
+output "cosmosdb_url" {
+  description = "The CosmosDB Table Endpoint URL"
+  value       = "https://${var.cosmosdb_name}.table.cosmos.azure.com"
+}
