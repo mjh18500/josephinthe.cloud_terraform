@@ -23,7 +23,7 @@ jobs:
     name: Deploy Test Infrastructure
     env:
       RESOURCE_GROUP_NAME: "test-${{ github.event.pull_request.number }}"
-      LOCATION: "eastus"
+      LOCATION: "eastus2"
     steps:
       - uses: actions/checkout@v4
 
