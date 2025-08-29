@@ -4,7 +4,6 @@ on:
   workflow_run:
     workflows: ["Deploy Test Environment and Run Tests"]
     types: [completed]
-    branches: [test]
 
 env:
   TF_VERSION: 1.7.0
@@ -15,7 +14,10 @@ env:
 
 jobs:
   deploy-prod:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     name: Deploy to Production
     environment:
@@ -131,7 +133,10 @@ jobs:
 # --------------------------------------
   cleanup:
     needs: deploy-prod   # wait until production deploy succeeds
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     name: Destroy PR Test Infrastructure
     steps:
