@@ -13,34 +13,67 @@ env:
 
 jobs:
   # -----------------------------------
-  # 🧹 Lint Terraform Code (FAST)
+  # 🧹 Lint Terraform Code
   # -----------------------------------
   lint:
     runs-on: ubuntu-latest
-    container: 
-      image: mjh18500/tfimage2:latest
-      options: --user root
     name: Terraform Lint
     steps:
       - uses: actions/checkout@v4
 
-      # Quick format check only
-      - name: Terraform Format Check
+      # Ensure plugin cache dir exists
+      - name: Create plugin cache dir
+        run: mkdir -p ~/.terraform.d/plugin-cache
+
+       # Cache Terraform providers
+      - name: Cache Terraform providers
+        uses: actions/cache@v3
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-${{ env.TF_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+
+      # Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure Terraform plugin cache dir
+        run: echo "TF_PLUGIN_CACHE_DIR=$HOME/.terraform.d/plugin-cache" >> $GITHUB_ENV    
+
+      # Install TFLint
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      # Run terraform fmt + validate
+      - name: Terraform Format & Validate
         working-directory: terraform/environments/test
         run: |
           terraform fmt -check -recursive
-          echo "✅ Linting completed (fast mode)"
+          terraform init -backend=false
+          terraform validate
+
+      # Run TFLint
+      - name: Run TFLint (test env + modules)
+        run: |
+          tflint --chdir=terraform/environments/test --init
+          tflint --chdir=terraform/environments/test
+          tflint --chdir=terraform/modules/backend --init
+          tflint --chdir=terraform/modules/backend
+          tflint --chdir=terraform/modules/frontend --init
+          tflint --chdir=terraform/modules/frontend
 
   # -------------------------------
-  # 🧪 Mock deployment (FAST)
+  # 🧪 Deploy PR-specific test env
   # -------------------------------
   deploy-test-env:
-    needs: lint
+    needs: lint   # ⬅️ require lint to pass first
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
-    container: 
-      image: mjh18500/tfimage2:latest
-      options: --user root
     name: Deploy Test Infrastructure
     env:
       ENV_ID: ${{ github.event.pull_request.number }}
@@ -54,7 +87,7 @@ jobs:
       - id: set-env-id
         run: echo "env_id=${{ env.ENV_ID }}" >> $GITHUB_OUTPUT
 
-      # Save ENV_ID for production workflow
+      # save ENV_ID so deploy-prod.yaml can use it
       - name: Write ENV_ID to file
         run: echo "${{ env.ENV_ID }}" > env_id.txt
 
@@ -64,24 +97,44 @@ jobs:
           name: env-id
           path: env_id.txt
 
-      # Mock deployment (just sleep to simulate work)
-      - name: Mock Terraform Deployment
-        run: |
-          echo "🚀 Starting mock deployment for test-${{ env.ENV_ID }}"
-          echo "📦 Resource Group: ${{ env.RESOURCE_GROUP_NAME }}"
-          echo "🌍 Location: ${{ env.LOCATION }}"
-          sleep 10  # Simulate deployment time
-          echo "✅ Mock deployment completed successfully!"
+      # Ensure plugin cache dir exists
+      - name: Create plugin cache dir
+        run: mkdir -p ~/.terraform.d/plugin-cache
+      
+       # Reuse same provider cache
+      - name: Cache Terraform providers
+        uses: actions/cache@v3
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-${{ env.TF_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+          
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}  
+          
+      - name: Configure Terraform plugin cache dir
+        run: echo "TF_PLUGIN_CACHE_DIR=$HOME/.terraform.d/plugin-cache" >> $GITHUB_ENV    
 
+      - name: Init and Apply Test Backend
+        working-directory: terraform/environments/test
+        run: |
+          terraform init
+          terraform apply -auto-approve \
+            -var="subscription_id=${{ secrets.ARM_SUBSCRIPTION_ID }}" \
+            -var="user_object_id=${{ secrets.ARM_USER_OBJECT_ID }}" \
+            -var="pr_number=${{ env.ENV_ID }}" \
+            -var="resource_group_name=${RESOURCE_GROUP_NAME}" \
+            -var="location=${LOCATION}" \
+            -var="env_name=test-${{ env.ENV_ID }}"
   # -------------------------------------
-  # ✅ Mock Testing (FAST)
+  # ✅ Run Cypress E2E Tests
   # -------------------------------------
   test:
     needs: deploy-test-env
     runs-on: ubuntu-latest
-    container: 
-      image: mjh18500/tfimage2:latest
-      options: --user root
     name: Run Cypress & E2E Tests
     env:
       ENV_ID: test-${{ github.event.pull_request.number }}
@@ -89,27 +142,63 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Mock test execution
-      - name: Mock E2E Tests
-        run: |
-          echo "🧪 Starting mock E2E tests for ${{ env.ENV_ID }}"
-          echo "🔗 Mock Frontend URL: https://test-${{ env.ENV_ID }}.example.com"
-          echo "🔗 Mock API URL: https://api-test-${{ env.ENV_ID }}.example.com"
-          sleep 5  # Simulate test execution time
-          echo "✅ All mock tests passed!"
+      # Ensure plugin cache dir exists
+      - name: Create plugin cache dir
+        run: mkdir -p ~/.terraform.d/plugin-cache
 
-      # Create a simple test report
-      - name: Generate Mock Test Results
-        run: |
-          echo "Test Results Summary:" > test-results.txt
-          echo "- Login Test: PASSED" >> test-results.txt
-          echo "- API Health Check: PASSED" >> test-results.txt
-          echo "- Database Connection: PASSED" >> test-results.txt
-          echo "- Frontend Load: PASSED" >> test-results.txt
-          cat test-results.txt
-
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          name: test-results
-          path: test-results.txt
+          node-version: 22.16.0
+
+      # ✅ Cache Node dependencies
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-      
+
+      - name: Install dependencies
+        run: npm ci
+
+       # Reuse Terraform provider cache
+      - name: Cache Terraform providers
+        uses: actions/cache@v3
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-${{ env.TF_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-  
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          
+      - name: Configure Terraform plugin cache dir
+        run: echo "TF_PLUGIN_CACHE_DIR=$HOME/.terraform.d/plugin-cache" >> $GITHUB_ENV   
+
+      - name: Init Backend
+        working-directory: terraform/environments/test
+        run: terraform init
+
+      - name: Get Terraform Outputs
+        working-directory: terraform/environments/test
+        id: tf-output
+        run: |
+          echo "FRONTDOOR_URL=$(terraform output -raw frontdoor_endpoint_url)" >> $GITHUB_ENV
+          echo "APIM_URL=$(terraform output -raw apim_api_url)" >> $GITHUB_ENV
+          echo "FUNCAPP_URL=$(terraform output -raw function_app_url)" >> $GITHUB_ENV
+          echo "COSMOSDB_URL=$(terraform output -raw cosmosdb_url)" >> $GITHUB_ENV      
+
+      - name: Run Cypress E2E tests
+        run:  npx cypress run
+        env:
+          CYPRESS_BASE_URL: ${{ env.FRONTDOOR_URL }}
+          CYPRESS_APIM_URL: ${{ env.APIM_URL }}
+          CYPRESS_FUNCAPP_URL: ${{ env.FUNCAPP_URL }}
+          CYPRESS_COSMOSDB_URL: ${{ env.COSMOSDB_URL }}
+          ENV_ID: ${{ env.ENV_ID }}
+          RESOURCE_GROUP_NAME: ${{ env.RESOURCE_GROUP_NAME }}
