@@ -12,7 +12,37 @@ env:
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}      
 
 jobs:
+  # Check if this push came from a merged PR
+  check-pr-merge:
+    runs-on: ubuntu-latest
+    name: Check if PR was merged
+    outputs:
+      is_merged_pr: ${{ steps.check.outputs.is_merged_pr }}
+      pr_number: ${{ steps.check.outputs.pr_number }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check if push is from merged PR
+        id: check
+        run: |
+          # Check if the commit has a merge commit pattern
+          COMMIT_MESSAGE=$(git log --format=%B -n 1 ${{ github.sha }})
+          echo "Commit message: $COMMIT_MESSAGE"
+          
+          if [[ "$COMMIT_MESSAGE" =~ ^Merge\ pull\ request\ \#([0-9]+) ]]; then
+            PR_NUMBER=$(echo "$COMMIT_MESSAGE" | grep -oP 'Merge pull request #\K[0-9]+')
+            echo "is_merged_pr=true" >> $GITHUB_OUTPUT
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "✅ This push is from merging PR #$PR_NUMBER"
+          else
+            echo "is_merged_pr=false" >> $GITHUB_OUTPUT
+            echo "pr_number=" >> $GITHUB_OUTPUT
+            echo "❌ This push is not from a merged PR"
+          fi
+
   deploy-prod:
+    needs: check-pr-merge
+    if: needs.check-pr-merge.outputs.is_merged_pr == 'true'
     runs-on: ubuntu-latest
     name: Deploy to Production
     environment:
@@ -21,14 +51,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Log deployment trigger
-        run: |
-          echo "🚀 Starting production deployment"
-          echo "Triggered by: ${{ github.event_name }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Commit: ${{ github.sha }}"
-          echo "Pusher: ${{ github.event.pusher.name }}"
 
       # Ensure plugin cache dir exists
       - name: Create plugin cache dir
@@ -130,4 +152,53 @@ jobs:
           CYPRESS_BASE_URL: ${{ env.FRONTDOOR_URL }}
           CYPRESS_APIM_URL: ${{ env.APIM_URL }}
           CYPRESS_FUNCAPP_URL: ${{ env.FUNCAPP_URL }}
-          CYPRESS_COSMOSDB_URL: ${{ env.COSMOSDB_URL }}"
+          CYPRESS_COSMOSDB_URL: ${{ env.COSMOSDB_URL }}
+
+# --------------------------------------
+# 🧹 Destroy test infra after merge
+# --------------------------------------
+  cleanup:
+    needs: [check-pr-merge, deploy-prod]
+    if: needs.check-pr-merge.outputs.pr_number != ''
+    runs-on: ubuntu-latest
+    name: Destroy PR Test Infrastructure
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set ENV_ID from PR number
+        run: echo "ENV_ID=${{ needs.check-pr-merge.outputs.pr_number }}" >> $GITHUB_ENV
+
+      # Ensure plugin cache dir exists
+      - name: Create plugin cache dir
+        run: mkdir -p ~/.terraform.d/plugin-cache
+
+      # Cache Terraform providers
+      - name: Cache Terraform providers
+        uses: actions/cache@v3
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-${{ env.TF_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure Terraform plugin cache dir
+        run: echo "TF_PLUGIN_CACHE_DIR=$HOME/.terraform.d/plugin-cache" >> $GITHUB_ENV
+
+      - name: Terraform Destroy Test Environment
+        working-directory: terraform/environments/test
+        run: |
+          echo "🧹 Cleaning up test environment for PR #${{ env.ENV_ID }}"
+          terraform init
+          terraform destroy -auto-approve \
+            -var="subscription_id=${{ secrets.ARM_SUBSCRIPTION_ID }}" \
+            -var="user_object_id=${{ secrets.ARM_USER_OBJECT_ID }}" \
+            -var="pr_number=${{ env.ENV_ID }}" \
+            -var="resource_group_name=test-${{ env.ENV_ID }}" \
+            -var="location=eastus2" \
+            -var="env_name=test-${{ env.ENV_ID }}" || true
+          echo "✅ Test environment cleanup completed"
