@@ -17,7 +17,9 @@ jobs:
   # -----------------------------------
   lint:
     runs-on: ubuntu-latest
-    container: mjh18500/tfimage2:latest
+    container: 
+      image: mjh18500/tfimage2:latest
+      options: --user devops
     name: Terraform Lint
     steps:
       - uses: actions/checkout@v4
