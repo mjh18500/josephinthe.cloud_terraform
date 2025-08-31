@@ -38,7 +38,9 @@ jobs:
     needs: lint
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
-    container: mjh18500/tfimage2:latest
+    container: 
+      image: mjh18500/tfimage2:latest
+      options: --user root
     name: Deploy Test Infrastructure
     env:
       ENV_ID: ${{ github.event.pull_request.number }}
@@ -77,7 +79,9 @@ jobs:
   test:
     needs: deploy-test-env
     runs-on: ubuntu-latest
-    container: mjh18500/tfimage2:latest
+    container: 
+      image: mjh18500/tfimage2:latest
+      options: --user root
     name: Run Cypress & E2E Tests
     env:
       ENV_ID: test-${{ github.event.pull_request.number }}

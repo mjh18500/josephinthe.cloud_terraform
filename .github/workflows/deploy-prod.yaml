@@ -15,7 +15,9 @@ jobs:
   # Check if this push came from a merged PR
   check-pr-merge:
     runs-on: ubuntu-latest
-    container: mjh18500/tfimage2:latest
+    container: 
+      image: mjh18500/tfimage2:latest
+      options: --user root
     name: Check if PR was merged
     outputs:
       is_merged_pr: ${{ steps.check.outputs.is_merged_pr }}
@@ -45,7 +47,9 @@ jobs:
     needs: check-pr-merge
     if: needs.check-pr-merge.outputs.is_merged_pr == 'true'
     runs-on: ubuntu-latest
-    container: mjh18500/tfimage2:latest
+    container: 
+      image: mjh18500/tfimage2:latest
+      options: --user root
     name: Deploy to Production
     environment:
       name: production
@@ -82,7 +86,9 @@ jobs:
   prodtest:
     needs: deploy-prod
     runs-on: ubuntu-latest
-    container: mjh18500/tfimage2:latest
+    container: 
+      image: mjh18500/tfimage2:latest
+      options: --user root
     name: Run Cypress & E2E Tests
     steps:
       - uses: actions/checkout@v4
@@ -146,7 +152,9 @@ jobs:
     needs: [check-pr-merge, deploy-prod]
     if: needs.check-pr-merge.outputs.pr_number != ''
     runs-on: ubuntu-latest
-    container: mjh18500/tfimage2:latest
+    container: 
+      image: mjh18500/tfimage2:latest
+      options: --user root
     name: Destroy PR Test Infrastructure
     steps:
       - uses: actions/checkout@v4
