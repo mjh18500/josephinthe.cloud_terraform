@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main  # Always checkout main branch for production deployment
+          ref: main  # Always checkout main branch for production deployment.
 
       # Ensure plugin cache dir exists
       - name: Create plugin cache dir
