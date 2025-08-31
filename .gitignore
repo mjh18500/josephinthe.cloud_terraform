@@ -1,2 +1,4 @@
 terraform.tfstate
 .env
+.\cypress\videos
+.\cypress\screenshots
