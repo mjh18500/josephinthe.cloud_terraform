@@ -16,8 +16,11 @@ jobs:
   deploy-prod:
     if: >
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main'
+      (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'pull_request') &&
+      (github.event.workflow_run.head_branch == 'main' || 
+       (github.event.workflow_run.event == 'pull_request' && 
+        github.event.workflow_run.pull_requests[0].base.ref == 'main' &&
+        github.event.workflow_run.pull_requests[0].merged == true))
     runs-on: ubuntu-latest
     name: Deploy to Production
     environment:
@@ -26,6 +29,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main  # Always checkout main branch for production deployment
 
       # Ensure plugin cache dir exists
       - name: Create plugin cache dir
@@ -59,6 +64,7 @@ jobs:
             -var="resource_group_name=prodrg" \
             -var="location=eastus2" \
             -var="env_name=prod"
+
 # -------------------------------------
 # ✅ Run Cypress E2E Tests
 # -------------------------------------
@@ -68,6 +74,8 @@ jobs:
     name: Run Cypress & E2E Tests
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       # Ensure plugin cache dir exists
       - name: Create plugin cache dir
@@ -135,8 +143,9 @@ jobs:
     needs: deploy-prod   # wait until production deploy succeeds
     if: >
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main'
+      (github.event.workflow_run.event == 'push' || 
+       (github.event.workflow_run.event == 'pull_request' && 
+        github.event.workflow_run.pull_requests[0].merged == true))
     runs-on: ubuntu-latest
     name: Destroy PR Test Infrastructure
     steps:
@@ -147,6 +156,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: env-id
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Read ENV_ID
         id: read-env
