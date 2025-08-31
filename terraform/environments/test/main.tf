@@ -7,7 +7,7 @@ provider "azurerm" {
 }
 
 
-//function_app_name must be unique
+//function_app_name must be unique.
 //function app name. Valid characters are a-z (case insensitive), 0-9, and -.
 //user_object_id for role assigments
 //storage_account_name must be unique. 
