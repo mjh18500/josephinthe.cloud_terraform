@@ -125,7 +125,7 @@ jobs:
         run: |
           echo "FRONTDOOR_URL=$(terraform output -raw frontdoor_endpoint_url)" >> $GITHUB_ENV
           echo "APIM_URL=$(terraform output -raw apim_api_url)" >> $GITHUB_ENV
-          FUNCAPP_URL=$(terraform output -raw function_app_url)" >> $GITHUB_ENV
+          echo "FUNCAPP_URL=$(terraform output -raw function_app_url)" >> $GITHUB_ENV
           echo "COSMOSDB_URL=$(terraform output -raw cosmosdb_url)" >> $GITHUB_ENV      
 
       - name: Run Cypress E2E prod
