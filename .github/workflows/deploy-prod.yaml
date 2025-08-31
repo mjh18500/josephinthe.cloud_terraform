@@ -24,6 +24,9 @@ jobs:
       pr_number: ${{ steps.check.outputs.pr_number }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Mark repo as safe for git
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
       
       - name: Check if push is from merged PR
         id: check
