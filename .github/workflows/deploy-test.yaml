@@ -17,12 +17,15 @@ jobs:
   # -----------------------------------
   lint:
     runs-on: ubuntu-latest
-    container: 
-      image: mjh18500/tfimage2:latest
-      options: --user root
     name: Terraform Lint
     steps:
       - uses: actions/checkout@v4
+
+      # Just do basic validation without full init
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
 
       # Quick format check only
       - name: Terraform Format Check
@@ -38,9 +41,6 @@ jobs:
     needs: lint
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
-    container: 
-      image: mjh18500/tfimage2:latest
-      options: --user root
     name: Deploy Test Infrastructure
     env:
       ENV_ID: ${{ github.event.pull_request.number }}
@@ -80,7 +80,7 @@ jobs:
     needs: deploy-test-env
     runs-on: ubuntu-latest
     container: 
-      image: mjh18500/tfimage2:latest
+      image: mjh18500/tfimage4:latest
       options: --user root
     name: Run Cypress & E2E Tests
     env:
