@@ -1,7 +1,7 @@
 terraform {
   backend "azurerm" {
     resource_group_name  = "rg-terraformstate"
-    storage_account_name = "josephcloudtfstateacc001"
+    storage_account_name = ""
     container_name       = "statecontainer"
     key                  = "test.terraform.tfstate"
     use_oidc             = true

@@ -66,52 +66,6 @@ resource "azurerm_api_management_api" "res-api-man-api" {
   }
 }
 
-/*
-resource "azurerm_api_management_api_operation" "res-api-operation" {
-  api_management_name = azurerm_api_management.res-api-management.name
-  api_name            = azurerm_api_management_api.res-api-man-api.name
-  display_name        = "HTTP Trigger Function"
-  method              = "POST"
-  operation_id        = "http-trigger"
-  resource_group_name = azurerm_resource_group.res-backend-rg.name
-  url_template        = "/http_trigger"
-  depends_on = [
-    azurerm_api_management_api.res-api-man-api,azurerm_api_management.res-api-management
-  ]
-}
-
-resource "azurerm_api_management_api_policy" "res-api-man-api-policy" {
-  api_name            = azurerm_api_management_api.res-api-man-api.name
-  api_management_name = azurerm_api_management.res-api-management.name
-  resource_group_name = azurerm_resource_group.res-backend-rg.name
-
-  xml_content = <<XML
-<policies>
-    <inbound>
-        <base />
-        <!-- Send requests to the Function App backend -->
-        <set-backend-service base-url="https://${azurerm_linux_function_app.res-lin-func-app.name}.azurewebsites.net" />
-        
-        <!-- Rewrite APIM path to match Function App route -->
-        <rewrite-uri template="/api/http_trigger" />
-    </inbound>
-    <backend>
-        <base />
-    </backend>
-    <outbound>
-        <base />
-    </outbound>
-    <on-error>
-        <base />
-    </on-error>
-</policies>
-XML
-depends_on = [
-    azurerm_api_management_api.res-api-man-api,azurerm_api_management.res-api-management,azurerm_resource_group.res-backend-rg
-  ]
-}
-*/
-
 resource "azurerm_api_management_api_operation_policy" "res-api-operation-policy1" {
   api_management_name = azurerm_api_management.res-api-management.name
   api_name            = azurerm_api_management_api.res-api-man-api.name
@@ -146,14 +100,6 @@ resource "azurerm_api_management_backend" "res-api-management-backend" {
   ]
 }
 
-/*
-resource "random_password" "res-api-key-value" {
-  length           = 16
-  special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
-}
-*/
-
 data "azurerm_function_app_host_keys" "keys" {
   name                = azurerm_linux_function_app.res-lin-func-app.name
   resource_group_name = azurerm_linux_function_app.res-lin-func-app.resource_group_name
@@ -171,14 +117,6 @@ resource "azurerm_api_management_named_value" "res-api-management-named-value" {
     azurerm_api_management.res-api-management, azurerm_resource_group.res-backend-rg
   ]
 }
-
-
-/*
-resource "azurerm_api_management_policy" "res-api-operation-policy4" {
-  api_management_id = azurerm_api_management.res-api-management.id
-  xml_content       = "<!--\r\n    IMPORTANT:\r\n    - Policy elements can appear only within the <inbound>, <outbound>, <backend> section elements.\r\n    - Only the <forward-request> policy element can appear within the <backend> section element.\r\n    - To apply a policy to the incoming request (before it is forwarded to the backend service), place a corresponding policy element within the <inbound> section element.\r\n    - To apply a policy to the outgoing response (before it is sent back to the caller), place a corresponding policy element within the <outbound> section element.\r\n    - To add a policy position the cursor at the desired insertion point and click on the round button associated with the policy.\r\n    - To remove a policy, delete the corresponding policy statement from the policy document.\r\n    - Policies are applied in the order of their appearance, from the top down.\r\n-->\r\n<policies>\r\n\t<inbound />\r\n\t<backend>\r\n\t\t<forward-request />\r\n\t</backend>\r\n\t<outbound />\r\n</policies>"
-}
-*/
 resource "azurerm_api_management_subscription" "res-api-man-sub3" {
   allow_tracing       = false
   api_id              = trimsuffix(azurerm_api_management_api.res-api-man-api.id, local.revision_suffix)
@@ -376,20 +314,6 @@ resource "azurerm_storage_table" "res-storage-table" {
     azurerm_storage_account.res-storage-account
   ]
 }
-//may not need
-/*
-resource "azurerm_api_connection" "res-api-connection2" {
-  managed_api_id = "/subscriptions/${var.subscription_id}/providers/Microsoft.Web/locations/${var.location}/managedApis/arm"
-  name           = "arm"
-  parameter_values = {
-    "token:grantType" = "code"
-  }
-  resource_group_name = azurerm_resource_group.res-backend-rg.name
-  depends_on = [
-    azurerm_resource_group.res-backend-rg
-  ]
-}
-*/
 resource "azurerm_service_plan" "res-service-plan" {
   location            = var.location
   name                = "ASP-${var.resource_group_name}-9669"
@@ -477,40 +401,14 @@ resource "azurerm_linux_function_app" "res-lin-func-app" {
     "FUNCTIONS_WORKER_RUNTIME"      = "python"
     "AzureWebJobsFeatureFlags"      = "EnableWorkerIndexing"
     "AZURE_COSMOS_CONNECTIONSTRING" = "DefaultEndpointsProtocol=https;AccountName=${azurerm_cosmosdb_account.res-cosmosdb-account.name};AccountKey=${azurerm_cosmosdb_account.res-cosmosdb-account.primary_key};TableEndpoint=https://${azurerm_cosmosdb_account.res-cosmosdb-account.name}.table.cosmos.azure.com:443/;"
+    "AZURE_COSMOS_TABLENAME"        = "${var.cosmosdb_name}table"
   }
 
   depends_on = [
     azurerm_service_plan.res-service-plan, azurerm_resource_group.res-backend-rg, azurerm_storage_account.res-storage-account, azurerm_api_management.res-api-management
   ]
 }
-//may not need. created automatically
-/*
-resource "azurerm_app_service_custom_hostname_binding" "res-app-serv-cust-host-bind" {
-  app_service_name    = var.function_app_name
-  hostname            = "${azurerm_linux_function_app.res-lin-func-app.name}.azurewebsites.net"
-  resource_group_name = azurerm_resource_group.res-backend-rg.name
-  depends_on = [
-    azurerm_resource_group.res-backend-rg,azurerm_service_plan.res-service-plan,time_sleep.res-app-service-sleep
-  ]
-}
 
-resource "azurerm_monitor_smart_detector_alert_rule" "res-mon-alert-rule" {
-  description         = "Failure Anomalies notifies you of an unusual rise in the rate of failed HTTP requests or dependency calls."
-  detector_type       = "FailureAnomaliesDetector"
-  enabled             = false
-  frequency           = "PT1M"
-  name                = "Failure Anomalies - ${azurerm_linux_function_app.res-lin-func-app.name}insights"
-  resource_group_name = azurerm_resource_group.res-backend-rg.name
-  scope_resource_ids  = [azurerm_application_insights.res-app-insights.id]
-  severity            = "Sev3"
-  action_group {
-    ids = ["/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Insights/actionGroups/application insights smart detection"]
-  }
-  depends_on = [
-    azurerm_resource_group.res-backend-rg,azurerm_application_insights.res-app-insights
-  ]
-}
-*/
 resource "azurerm_application_insights" "res-app-insights" {
   application_type                      = "web"
   location                              = var.location
@@ -564,28 +462,6 @@ resource "azurerm_monitor_metric_alert" "res-mon-metr-alert" {
     azurerm_resource_group.res-backend-rg, azurerm_application_insights.res-app-insights
   ]
 }
-//not using right now
-/*
-resource "azurerm_monitor_metric_alert" "res-mon-metr-alert1" {
-  frequency           = "PT5M"
-  name                = "Overall Duration of Gateway Requests"
-  resource_group_name = azurerm_resource_group.res-backend-rg.name
-  scopes              = [azurerm_api_management_api.res-api-man-api.id]
-  severity            = 2
-  window_size         = "PT12H"
-  criteria {
-    aggregation      = "Average"
-    metric_name      = "Duration"
-    metric_namespace = "microsoft.apimanagement/service/apis"
-    operator         = "GreaterThan"
-    threshold        = 30000
-  }
-  depends_on = [
-    azurerm_resource_group.res-backend-rg
-    # One of azurerm_api_management.res-api-management,azurerm_api_management_policy.res-api-operation-policy4 (can't auto-resolve as their ids are identical)
-  ]
-}
-*/
 resource "azurerm_monitor_metric_alert" "res-mon-metr-alert2" {
   enabled             = false
   name                = "http_trigger Count"
