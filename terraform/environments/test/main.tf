@@ -10,8 +10,6 @@ provider "azurerm" {
 //function_app_name must be unique.
 //function app name. Valid characters are a-z (case insensitive), 0-9, and -.
 //user_object_id for role assigments
-//storage_account_name must be unique. 
-//Storage account name must be between 3 and 24 characters in length and use numbers and lower-case letters only.
 
 
 module "backend" {

@@ -76,7 +76,7 @@ jobs:
       - name: Init and Apply Production
         working-directory: terraform/environments/prod
         run: |
-          terraform init
+          terraform init -backend-config="storage_account_name=${{ secrets.TF_STORAGE_ACCOUNT_NAME }}"
           terraform validate
           terraform apply -auto-approve \
             -var="subscription_id=${{ secrets.ARM_SUBSCRIPTION_ID }}" \
@@ -135,7 +135,7 @@ jobs:
 
       - name: Init Backend
         working-directory: terraform/environments/prod
-        run: terraform init
+        run: terraform init -backend-config="storage_account_name=${{ secrets.TF_STORAGE_ACCOUNT_NAME }}"
 
       - name: Get Terraform Outputs
         working-directory: terraform/environments/prod
@@ -193,7 +193,7 @@ jobs:
         working-directory: terraform/environments/test
         run: |
           echo "🧹 Cleaning up test environment for PR #${{ env.ENV_ID }}"
-          terraform init
+          terraform init -backend-config="storage_account_name=${{ secrets.TF_STORAGE_ACCOUNT_NAME }}"
           terraform destroy -auto-approve \
             -var="subscription_id=${{ secrets.ARM_SUBSCRIPTION_ID }}" \
             -var="user_object_id=${{ secrets.ARM_USER_OBJECT_ID }}" \

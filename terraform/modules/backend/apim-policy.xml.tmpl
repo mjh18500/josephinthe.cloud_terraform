@@ -5,12 +5,9 @@
             <when condition="@{
                 var origin = context.Request.Headers.GetValueOrDefault("Origin", "");
                 return origin == "https://www.josephinthe.cloud" || 
-                       origin == "https://josephinthe.cloud" || 
-                       origin == "https://josephcloudcdnendpoint.azureedge.net" ||
-                       origin == "https://testenvfdendpoint-fqhtf3ckgvc2cuad.z02.azurefd.net" ||
+                       origin == "https://josephinthe.cloud" ||                                             
                        origin == "http://localhost:5173" ||
-                       origin == "https://apimanagement.hosting.portal.azure.net" ||
-                       origin == "https://jcloud-fd-endpoint-a84fb9e1-fsfdh6cgeyfmfch0.z02.azurefd.net" ;
+                       origin == "https://apimanagement.hosting.portal.azure.net"    
             }">
                 <!-- Allow the request -->
             </when>
@@ -28,8 +25,6 @@
                 <origin>https://www.josephinthe.cloud</origin>
                 <origin>https://josephinthe.cloud</origin>
                 <origin>http://localhost:5173</origin>
-                <origin>https://josephcloudcdnendpoint.azureedge.net</origin>
-                <origin>https://testenvfdendpoint-fqhtf3ckgvc2cuad.z02.azurefd.net</origin>
                 <origin>https://apimanagement.hosting.portal.azure.net</origin>
             </allowed-origins>
             <allowed-methods>
